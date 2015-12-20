@@ -1,7 +1,7 @@
 {
   "title": "DA LeanForward",
   "name": "leanforward",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "View DeviantArt's SitBack page without Flash installed.",
   "main": "index.js",
   "author": "Christopher Bero <bigbero@gmail.com>",

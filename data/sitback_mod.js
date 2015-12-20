@@ -12,11 +12,8 @@ var arrLen = 0;
 var imageIndex = 0;
 var timerID;
 
-// Like I know what I'm doing or something
-console.log("Sitback Modifier loaded!");
-
 // Throw something on the page.
-divContent.html("Oh, hello there! Give us just a second to fetch your images...");
+document.getElementById("sitbackcontent").textContent = "Oh, hello there! Give us just a second to fetch your images...";
 
 function getQueryVariable(variable) {
   var query = window.location.search.substring(1);
@@ -36,40 +33,34 @@ function getRSS(rssURL) {
     dataType: 'json',
     success: function(xml) {
       arrLen = xml.responseData.feed.entries.length;
-      console.log("Array Length: ", arrLen);
+      //console.log("Array Length: ", arrLen);
       for (var i = 0; i < arrLen; i++) {
         imageSet.push(xml.responseData.feed.entries[i].mediaGroups[0].contents[0].url);
-        console.log("Image: ", imageSet[i]);
+        //console.log("Image: ", imageSet[i]);
       }
+      document.getElementById("sitbackcontent").textContent = "";
       setupImage();
       timerID = window.setInterval(displayNext, 5000);
       //displayNext();
     },
     error: function(jqXHR, textStatus, errorThrown) {
-      console.log('Unable to load feed, Incorrect path or invalid feed');
-      console.log('URL: ', googleUrl);
-      console.log("Returned text: ", textStatus);
+      // console.log('Unable to load feed, Incorrect path or invalid feed');
+      // console.log('URL: ', googleUrl);
+      // console.log("Returned text: ", textStatus);
     }
   });
 }
 
-var styleText = '<style> \
-#img_load { \
-  max-height: 100%; \
-  max-width: 100%; \
-  z-index: 10; \
-  display: none; \
-} \
-#img_disp { \
-  max-height: 100%; \
-  max-width: 100%; \
-  z-index: 20; \
-} \
-</style>';
-
 function setupImage() {
-  divContent.html(styleText +
-  '<img id="img_load"></img> <img id="img_disp"></img>');
+  var img1 = document.createElement("img");
+  img1.id = "img_load";
+  img1.className = "img_loading";
+  document.getElementById("sitbackcontent").appendChild(img1);
+  var img2 = document.createElement("img");
+  img2.id = "img_disp";
+  img2.className = "img_displayed";
+  document.getElementById("sitbackcontent").appendChild(img2);
+
   imageLoad = $("#img_load");
   imageDisp = $("#img_disp");
 }
