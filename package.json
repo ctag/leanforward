@@ -1,0 +1,19 @@
+{
+  "title": "DA LeanForward",
+  "name": "leanforward",
+  "version": "0.0.2",
+  "description": "View DeviantArt's SitBack page without Flash installed.",
+  "main": "index.js",
+  "author": "Christopher Bero <bigbero@gmail.com>",
+  "engines": {
+    "firefox": ">=38.0a1",
+    "fennec": ">=38.0a1"
+  },
+  "license": "GPL-3.0",
+  "keywords": [
+    "jetpack"
+  ],
+  "permissions": {
+    "cross-domain-content": ["http://ajax.googleapis.com/"]
+  }
+}
