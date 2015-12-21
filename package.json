@@ -1,10 +1,12 @@
 {
   "title": "DA LeanForward",
   "name": "leanforward",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "View DeviantArt's SitBack page without Flash installed.",
   "main": "index.js",
   "author": "Christopher Bero <bigbero@gmail.com>",
+  "updateURL": "https://raw.githubusercontent.com/ctag/leanforward/master/update.rdf",
+  "updateLink": "https://github.com/ctag/leanforward/releases/download/0.1.1/da_leanforward.xpi",
   "engines": {
     "firefox": ">=38.0a1",
     "fennec": ">=38.0a1"
