@@ -3,3 +3,5 @@
 *.xpi
 *.sh
 update.rdf
+.*
+*.md
