@@ -1,7 +1,7 @@
 // Oh boy, here I go writing javascript again
 
 // Hush
-/*jshint multistr: true */
+/* jshint multistr: true */
 
 // Variables
 var divContent = $("#sitbackcontent");
@@ -52,6 +52,7 @@ function getRSS(rssURL) {
 }
 
 function setupImage() {
+  document.getElementById("sitbackcontent").textContent = "";
   var img1 = document.createElement("img");
   img1.id = "img_load";
   img1.className = "img_loading";
@@ -68,9 +69,9 @@ function setupImage() {
 function displayNext() {
   //console.log("Setting image to: ", imageSet[imageIndex]);
   imageLoad.attr('src', imageSet[imageIndex]);
-  imageDisp.attr('src', imageSet[imageIndex+1]);
+  imageDisp.attr('src', imageSet[imageIndex + 1]);
   imageIndex++;
-  if (imageIndex >= (arrLen-1)) {
+  if (imageIndex >= (arrLen - 1)) {
     imageIndex = 0;
   }
 }
@@ -79,4 +80,32 @@ function displayNext() {
 queryData = getQueryVariable('rssQuery');
 rssUrl = 'http://backend.deviantart.com/rss.xml?type=deviation&q=' + queryData;
 googleUrl = document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=-1&q=' + encodeURIComponent(rssUrl);
-getRSS(googleUrl);
+//getRSS(googleUrl);
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest
+var oReq = new XMLHttpRequest();
+var reqJson;
+function transferComplete(event) {
+  //console.log("data: ", this.responseText, event);
+  var reg = /<media:content url=\"(.*)\" height/mg; // gross, I know.
+  var match = reg.exec(this.responseText);
+  while (match !== null) {
+    imageSet.push(match[1]);
+    match = reg.exec(this.responseText);
+  }
+  arrLen = imageSet.length;
+  //console.log("data: ", imageSet);
+  setupImage();
+  timerID = window.setInterval(displayNext, 5000);
+}
+function transferFailed(event) {
+  console.log("error: ", this, event);
+}
+oReq.addEventListener("load", transferComplete);
+oReq.addEventListener("error", transferFailed);
+oReq.open("GET", rssUrl);
+oReq.send();
+
+//var tmpDat = xmlToJson(rssUrl);
+//console.log("tmpdat", tmpDat);
