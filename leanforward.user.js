@@ -18,7 +18,7 @@
 // @name            leanforward
 // @namespace       https://greasyfork.org/en/users/24734-ctag
 // @description     Fix Deviantart's SitBack page for flash-less browsers.
-// @version         01.02.02
+// @version         01.02.03
 // @author          Christopher Bero
 // @license         LGPL-3.0 http://www.gnu.org/licenses/lgpl-3.0.en.html
 // @homepageURL     https://github.com/ctag/leanforward
@@ -75,11 +75,11 @@ function displayNext() {
     imageIndex = 0;
   }
   //if (_DEBUG) console.log("Setting image to: ", imageLoad.attr('src'));
-  console.log("Loading image: " + imageIndex);
+  if (_DEBUG) console.log("Loading image: " + imageIndex);
   imageDisp.attr('src', imageLoad.attr('src'));
   imageLoad.attr('src', deviationData[imageIndex].image.url);
   if (imageIndex === (deviationData.length - limit + 1)) {
-    console.log("End of images! Getting more...");
+    if (_DEBUG) console.log("End of images! Getting more...");
     //window.clearInterval(timerID);
     doTransfer();
   }
@@ -100,7 +100,7 @@ function buildQueryURL()
   rssUrl = addGetVar(rssUrl, 'limit', limit);
   rssUrl = addGetVar(rssUrl, 'offset', offset);
   offset += limit;
-  console.log("Build Query URL: ", rssUrl);
+  if (_DEBUG) console.log("Build Query URL: ", rssUrl);
 }
 
 function loopStart()
@@ -156,7 +156,7 @@ function transferFailed(error) {
 }
 
 function doTransfer() {
-  console.log("Getting an additional " + limit + " images, already have " + deviationData.length);
+  if (_DEBUG) console.log("Getting an additional " + limit + " images, already have " + deviationData.length);
   buildQueryURL();
   // Send cross-site RSS request
   GM_xmlhttpRequest({
@@ -198,7 +198,7 @@ function setup() {
     "display": "block",
     "margin": "0 auto"
   });
-  console.log("Done with setup()");
+  if (_DEBUG) console.log("Done with setup()");
 }
 
 /**
