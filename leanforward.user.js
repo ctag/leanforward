@@ -1,17 +1,24 @@
-/* This program is free software. It comes without any warranty, to
- * the extent permitted by applicable law. You can redistribute it
- * and/or modify it under the terms of the Do What The Fuck You Want
- * To Public License, Version 2, as published by Sam Hocevar. See
- * http://www.wtfpl.net/ for more details. */
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
- // Hush
- /* jshint multistr: true */
+// Hush
+/* jshint multistr: true */
 
 // ==UserScript==
 // @name            leanforward
 // @namespace       https://greasyfork.org/en/users/24734-ctag
 // @description     Fix Deviantart's SitBack page for flash-less browsers.
-// @version         01.02.01
+// @version         01.02.02
 // @author          Christopher Bero
 // @license         LGPL-3.0 http://www.gnu.org/licenses/lgpl-3.0.en.html
 // @homepageURL     https://github.com/ctag/leanforward
