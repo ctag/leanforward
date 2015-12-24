@@ -4,68 +4,52 @@
  * To Public License, Version 2, as published by Sam Hocevar. See
  * http://www.wtfpl.net/ for more details. */
 
+ // Hush
+ /* jshint multistr: true */
+
 // ==UserScript==
 // @name            leanforward
-// @namespace       http://berocs.com
-// @description     Fix Deviantart's SitBack page.
-// @version         01.00.15
+// @namespace       https://greasyfork.org/en/users/24734-ctag
+// @description     Fix Deviantart's SitBack page for flash-less browsers.
+// @version         01.02.00
 // @author          Christopher Bero
-// @license         WTFPL http://www.wtfpl.net/
-// @homepageURL
-// @supportURL
-// @resource        license https://raw.github.com/LouCypher/userscripts/master/licenses/WTFPL/LICENSE.txt
-// @resource        cssMod data/sitback_mod.css
+// @license         LGPL-3.0 http://www.wtfpl.net/
+// @homepageURL     https://github.com/ctag/leanforward
+// @downloadURL     https://github.com/ctag/leanforward/raw/master/leanforward.user.js
+// @resource        license http://www.gnu.org/licenses/lgpl-3.0.txt
 // @include         /.*justsitback\.deviantart\.com.*/
 // @grant           GM_xmlhttpRequest
-// @require         http://s.deviantart.com/styles/jms/lib/jquery/jquery-stable.js
+// @grant           GM_info
+// @require         https://s.deviantart.com/styles/jms/lib/jquery/jquery-stable.js
 // @run-at          document-idle
 // ==/UserScript==
 
-console.log("Running user script leanforward.");
-
-
-
-if (typeof jQuery != 'undefined') {
-    console.log("jQuery library is loaded!");
-}else{
-    console.log("jQuery library is not found!");
-}
-
-if (typeof window.jQuery != 'undefined') {
-    console.log("window jQuery library is loaded!");
-}else{
-    console.log("window jQuery library is not found!");
-}
-
-if (typeof document.jQuery != 'undefined') {
-    console.log("document jQuery library is loaded!");
-}else{
-    console.log("document jQuery library is not found!");
-}
-
-if (typeof unsafeWindow.jQuery != 'undefined') {
-    console.log("unsafeWindow jQuery library is loaded!");
-}else{
-    console.log("unsafeWindow jQuery library is not found!");
-}
-
-//this.$ = this.jQuery = unsafeWindow.jQuery;
-
-// Hush
-/* jshint multistr: true */
-
 // Variables
+var _DEBUG = false;
 var divContent = document.getElementById("sitbackcontent");
 var imageLoad;
 var imageDisp;
-var imageSet = [];
-var arrLen = 0;
+var deviationData = [];
 var imageIndex = 0;
 var timerID;
+// RSS Request Variables
+var queryData;
+var rssUrl;
+var rssBase = 'http://backend.deviantart.com/rss.xml?type=deviation';
+var reqJson;
+// http RSS request options
+var limit = 20; // fetch 20 images at a time
+var offset = 0; // offset from front, incremented by 'limit'
+var rssEnd = false; // Boolean, are we out of RSS data?
+// Transition variables
+var delay = 10000;
 
-// Throw something on the page.
-divContent.textContent = "Oh, hello there! Give us just a second to fetch your images...";
+if (_DEBUG) console.log("Running leanforward.user.js [" + GM_info.script.version + "]");
 
+/**
+ * getQueryVariable
+ * Get the rssQuery GET variable from the sitback URL
+ */
 function getQueryVariable(variable) {
   var query = window.location.search.substring(1);
   var vars = query.split("&");
@@ -78,43 +62,121 @@ function getQueryVariable(variable) {
   return (false);
 }
 
-function getRSS(rssURL) {
-  $.ajax({
-    url: rssURL,
-    type: "GET",
-    crossDomain: true,
-    dataType: 'json',
-    success: function(xml) {
-      arrLen = xml.responseData.feed.entries.length;
-      console.log("Array Length: ", arrLen);
-      for (var i = 0; i < arrLen; i++) {
-        imageSet.push(xml.responseData.feed.entries[i].mediaGroups[0].contents[0].url);
-        //console.log("Image: ", imageSet[i]);
-      }
-      document.getElementById("sitbackcontent").textContent = "";
-      setupImage();
+function displayNext() {
+  imageIndex++;
+  if (imageIndex >= deviationData.length) {
+    imageIndex = 0;
+  }
+  //if (_DEBUG) console.log("Setting image to: ", imageLoad.attr('src'));
+  console.log("Loading image: " + imageIndex);
+  imageDisp.attr('src', imageLoad.attr('src'));
+  imageLoad.attr('src', deviationData[imageIndex].image.url);
+  if (imageIndex === (deviationData.length - limit + 1)) {
+    console.log("End of images! Getting more...");
+    //window.clearInterval(timerID);
+    doTransfer();
+  }
+}
 
-      timerID = window.setInterval(displayNext, 5000);
-      //displayNext();
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      console.log('Unable to load feed, Incorrect path or invalid feed');
-      // console.log('URL: ', googleUrl);
-      // console.log("Returned text: ", textStatus);
-    }
+function addGetVar(url, name, value)
+{
+  url = url + '&' + name + '=' + value;
+  return url;
+}
+
+function buildQueryURL()
+{
+  if (!queryData) {
+    queryData  = getQueryVariable('rssQuery');
+  }
+  rssUrl = addGetVar(rssBase, 'q', queryData);
+  rssUrl = addGetVar(rssUrl, 'limit', limit);
+  rssUrl = addGetVar(rssUrl, 'offset', offset);
+  offset += limit;
+  console.log("Build Query URL: ", rssUrl);
+}
+
+function loopStart()
+{
+  timerID = window.setInterval(displayNext, delay);
+}
+
+function loopStop()
+{
+  window.clearInterval(timerID);
+}
+
+function transferComplete(data) {
+  if (_DEBUG) console.log("Transfer Complete: ");
+  var xml = $.parseXML(data.responseText);
+  var parsed = $(xml);
+  var items = parsed.find('item');
+  $.each(items, function () {
+    item = $(this);
+    deviation = {};
+    deviation.image = {};
+    deviation.title = item.find('title').text();
+    deviation.description = item.find('description').text();
+    deviation.url = item.find('link').text(); // A url to the page
+    deviation.copyright = item.find('media\\:copyright, copyright').text();
+    deviation.copyrightUrl = item.find('media\\:copyright, copyright').attr('url');
+    deviation.image.url = item.find('media\\:content, content').attr('url');
+    deviation.image.width = item.find('media\\:content, content').attr('width');
+    deviation.image.height = item.find('media\\:content, content').attr('height');
+    deviation.image.medium = item.find('media\\:content, content').attr('medium');
+    deviationData.push(deviation);
+    if (_DEBUG) console.log("New image data: ", deviation);
+  });
+
+  //if (_DEBUG) console.log("transfer complete data: ", data.responseText);
+  // var reg = /<media:content url=\"(.*)\" height/mg; // gross, I know.
+  // var match = reg.exec(data.responseText);
+  // while (match !== null) {
+  //   deviationData.push(match[1]);
+  //   match = reg.exec(data.responseText);
+  // }
+  //if (_DEBUG) console.log("Images: ", deviationData);
+  if (!imageDisp.attr('src')) {
+    imageDisp.attr('src', deviationData[0].image.url);
+    imageLoad.attr('src', deviationData[1].image.url);
+    imageIndex = 0;
+    loopStart();
+  }
+}
+
+function transferFailed(error) {
+  console.log("http Request Error: ", error);
+}
+
+function doTransfer() {
+  console.log("Getting an additional " + limit + " images, already have " + deviationData.length);
+  buildQueryURL();
+  // Send cross-site RSS request
+  GM_xmlhttpRequest({
+    method: "GET",
+    synchronous: false,
+    timeout: delay,
+    url: rssUrl,
+    onload: transferComplete,
+    onerror: transferFailed,
+    onabort: transferFailed,
+    ontimeout: transferFailed
   });
 }
 
-function setupImage() {
-  document.getElementById("sitbackcontent").textContent = "";
+function setup() {
+  // console.log("Doc domain: ", document.domain);
+  // document.domain = "deviantart.com"; // Doesn't work here
+  // console.log(document.domain);
+  divContent.textContent = "";
   var img1 = document.createElement("img");
+  var img2 = document.createElement("img");
   img1.id = "img_load";
   img1.className = "img_loading";
-  document.getElementById("sitbackcontent").appendChild(img1);
-  var img2 = document.createElement("img");
   img2.id = "img_disp";
   img2.className = "img_displayed";
-  document.getElementById("sitbackcontent").appendChild(img2);
+  divContent.appendChild(img1);
+  divContent.appendChild(img2);
 
   imageLoad = $("#img_load");
   imageDisp = $("#img_disp");
@@ -125,66 +187,54 @@ function setupImage() {
   });
   imageDisp.css({
     "max-width": "100%",
-    "max-height": "100%"
+    "max-height": "100%",
+    "display": "block",
+    "margin": "0 auto"
   });
+  console.log("Done with setup()");
 }
 
-function displayNext() {
-  console.log("Setting image to: ", imageSet[imageIndex]);
-  imageLoad.attr('src', imageSet[imageIndex]);
-  imageDisp.attr('src', imageSet[imageIndex + 1]);
-  imageIndex++;
-  if (imageIndex >= (arrLen - 1)) {
-    imageIndex = 0;
-  }
-}
+/**
+ * DO THINGS
+ */
 
-// Setup the RSS fetch
-queryData = getQueryVariable('rssQuery');
-rssUrl = 'http://backend.deviantart.com/rss.xml?type=deviation&q=' + queryData;
-googleUrl = document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=-1&q=' + encodeURIComponent(rssUrl);
-//getRSS(googleUrl);
+// Throw something on the page.
+divContent.textContent = "Oh, hello there! Give us just a second to fetch your images...";
+// Setup the page
+setup();
+// Kick off the RSS feed loop
+doTransfer();
 
 
-// https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest
+/**
+ * ONLY UNUSED CODE BELOW HERE
+ */
 
-var reqJson;
+// googleUrl = document.location.protocol + '//ajax.googleapis.com/ajax/services/feed/load?v=1.0&num=-1&q=' + encodeURIComponent(rssUrl);
 
-function transferComplete(data) {
-  console.log("transfer complete data: ", data.responseText);
-  var reg = /<media:content url=\"(.*)\" height/mg; // gross, I know.
-  var match = reg.exec(data.responseText);
-  while (match !== null) {
-    imageSet.push(match[1]);
-    match = reg.exec(data.responseText);
-  }
-  arrLen = imageSet.length;
-  console.log("Images: ", imageSet);
-  setupImage();
-  timerID = window.setInterval(displayNext, 5000);
-}
-
-function transferFailed(event) {
-  console.log("error: ", this, event);
-}
-
-// var oReq = new XMLHttpRequest({
-//   method: "GET",
-//   url: rssUrl,
-//   onload: transferComplete,
-//   onerror: transferFailed
-// });
+// function getRSS(rssURL) {
+//   $.ajax({
+//     url: rssURL,
+//     type: "GET",
+//     crossDomain: true,
+//     dataType: 'json',
+//     success: function(xml) {
+//       deviationData.length = xml.responseData.feed.entries.length;
+//       console.log("Array Length: ", deviationData.length);
+//       for (var i = 0; i < deviationData.length; i++) {
+//         deviationData.push(xml.responseData.feed.entries[i].mediaGroups[0].contents[0].url);
+//         //console.log("Image: ", deviationData[i]);
+//       }
+//       document.getElementById("sitbackcontent").textContent = "";
+//       setupImage();
 //
-// oReq.addEventListener("load", transferComplete);
-// oReq.addEventListener("error", transferFailed);
-// oReq.open("GET", rssUrl);
-// oReq.send();
-
-//console.log("CSS: ", cssMod);
-
-GM_xmlhttpRequest({
-  method: "GET",
-  url: rssUrl,
-  onload: transferComplete,
-  onerror: transferFailed
-});
+//       timerID = window.setInterval(displayNext, 5000);
+//       //displayNext();
+//     },
+//     error: function(jqXHR, textStatus, errorThrown) {
+//       console.log('Unable to load feed, Incorrect path or invalid feed');
+//       // console.log('URL: ', googleUrl);
+//       // console.log("Returned text: ", textStatus);
+//     }
+//   });
+// }
