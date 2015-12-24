@@ -11,7 +11,7 @@ pageMod.PageMod({
   include: /.*justsitback\.deviantart\.com.*/,
   //include: /http:\/\/www\.deviantart\.com.*/,
   contentScriptFile: [
-    self.data.url("jquery-2.1.4.min.js"),
+    //self.data.url("jquery-2.1.4.min.js"),
     self.data.url("sitback_mod.js")
   ],
   contentStyleFile: [

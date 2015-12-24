@@ -4,7 +4,7 @@
 /* jshint multistr: true */
 
 // Variables
-var divContent = $("#sitbackcontent");
+var divContent = document.getElementById("sitbackcontent");
 var imageLoad;
 var imageDisp;
 var imageSet = [];
@@ -13,7 +13,7 @@ var imageIndex = 0;
 var timerID;
 
 // Throw something on the page.
-document.getElementById("sitbackcontent").textContent = "Oh, hello there! Give us just a second to fetch your images...";
+divContent.textContent = "Oh, hello there! Give us just a second to fetch your images...";
 
 function getQueryVariable(variable) {
   var query = window.location.search.substring(1);
@@ -102,10 +102,18 @@ function transferComplete(event) {
 function transferFailed(event) {
   console.log("error: ", this, event);
 }
-oReq.addEventListener("load", transferComplete);
-oReq.addEventListener("error", transferFailed);
-oReq.open("GET", rssUrl);
-oReq.send();
+// oReq.addEventListener("load", transferComplete);
+// oReq.addEventListener("error", transferFailed);
+// oReq.open("GET", rssUrl);
+// oReq.send();
 
-//var tmpDat = xmlToJson(rssUrl);
-//console.log("tmpdat", tmpDat);
+
+// DWait.ready("jms/lib/jquery/jquery.current.js",function(){
+//   console.log("HERE");
+// });
+
+if (typeof jQuery != 'undefined') {
+    alert("jQuery library is loaded!");
+}else{
+    alert("jQuery library is not found!");
+}
