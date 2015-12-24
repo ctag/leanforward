@@ -1,4 +1,55 @@
-// Oh boy, here I go writing javascript again
+/* This program is free software. It comes without any warranty, to
+ * the extent permitted by applicable law. You can redistribute it
+ * and/or modify it under the terms of the Do What The Fuck You Want
+ * To Public License, Version 2, as published by Sam Hocevar. See
+ * http://www.wtfpl.net/ for more details. */
+
+// ==UserScript==
+// @name            leanforward
+// @namespace       http://berocs.com
+// @description     Fix Deviantart's SitBack page.
+// @version         01.00.15
+// @author          Christopher Bero
+// @license         WTFPL http://www.wtfpl.net/
+// @homepageURL
+// @supportURL
+// @resource        license https://raw.github.com/LouCypher/userscripts/master/licenses/WTFPL/LICENSE.txt
+// @resource        cssMod data/sitback_mod.css
+// @include         /.*justsitback\.deviantart\.com.*/
+// @grant           GM_xmlhttpRequest
+// @require         http://s.deviantart.com/styles/jms/lib/jquery/jquery-stable.js
+// @run-at          document-idle
+// ==/UserScript==
+
+console.log("Running user script leanforward.");
+
+
+
+if (typeof jQuery != 'undefined') {
+    console.log("jQuery library is loaded!");
+}else{
+    console.log("jQuery library is not found!");
+}
+
+if (typeof window.jQuery != 'undefined') {
+    console.log("window jQuery library is loaded!");
+}else{
+    console.log("window jQuery library is not found!");
+}
+
+if (typeof document.jQuery != 'undefined') {
+    console.log("document jQuery library is loaded!");
+}else{
+    console.log("document jQuery library is not found!");
+}
+
+if (typeof unsafeWindow.jQuery != 'undefined') {
+    console.log("unsafeWindow jQuery library is loaded!");
+}else{
+    console.log("unsafeWindow jQuery library is not found!");
+}
+
+//this.$ = this.jQuery = unsafeWindow.jQuery;
 
 // Hush
 /* jshint multistr: true */
@@ -30,21 +81,24 @@ function getQueryVariable(variable) {
 function getRSS(rssURL) {
   $.ajax({
     url: rssURL,
+    type: "GET",
+    crossDomain: true,
     dataType: 'json',
     success: function(xml) {
       arrLen = xml.responseData.feed.entries.length;
-      //console.log("Array Length: ", arrLen);
+      console.log("Array Length: ", arrLen);
       for (var i = 0; i < arrLen; i++) {
         imageSet.push(xml.responseData.feed.entries[i].mediaGroups[0].contents[0].url);
         //console.log("Image: ", imageSet[i]);
       }
       document.getElementById("sitbackcontent").textContent = "";
       setupImage();
+
       timerID = window.setInterval(displayNext, 5000);
       //displayNext();
     },
     error: function(jqXHR, textStatus, errorThrown) {
-      // console.log('Unable to load feed, Incorrect path or invalid feed');
+      console.log('Unable to load feed, Incorrect path or invalid feed');
       // console.log('URL: ', googleUrl);
       // console.log("Returned text: ", textStatus);
     }
@@ -64,10 +118,19 @@ function setupImage() {
 
   imageLoad = $("#img_load");
   imageDisp = $("#img_disp");
+  imageLoad.css({
+    "max-width": "100%",
+    "max-height": "100%",
+    "display": "none"
+  });
+  imageDisp.css({
+    "max-width": "100%",
+    "max-height": "100%"
+  });
 }
 
 function displayNext() {
-  //console.log("Setting image to: ", imageSet[imageIndex]);
+  console.log("Setting image to: ", imageSet[imageIndex]);
   imageLoad.attr('src', imageSet[imageIndex]);
   imageDisp.attr('src', imageSet[imageIndex + 1]);
   imageIndex++;
@@ -84,36 +147,44 @@ googleUrl = document.location.protocol + '//ajax.googleapis.com/ajax/services/fe
 
 
 // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest
-var oReq = new XMLHttpRequest();
+
 var reqJson;
-function transferComplete(event) {
-  //console.log("data: ", this.responseText, event);
+
+function transferComplete(data) {
+  console.log("transfer complete data: ", data.responseText);
   var reg = /<media:content url=\"(.*)\" height/mg; // gross, I know.
-  var match = reg.exec(this.responseText);
+  var match = reg.exec(data.responseText);
   while (match !== null) {
     imageSet.push(match[1]);
-    match = reg.exec(this.responseText);
+    match = reg.exec(data.responseText);
   }
   arrLen = imageSet.length;
-  //console.log("data: ", imageSet);
+  console.log("Images: ", imageSet);
   setupImage();
   timerID = window.setInterval(displayNext, 5000);
 }
+
 function transferFailed(event) {
   console.log("error: ", this, event);
 }
+
+// var oReq = new XMLHttpRequest({
+//   method: "GET",
+//   url: rssUrl,
+//   onload: transferComplete,
+//   onerror: transferFailed
+// });
+//
 // oReq.addEventListener("load", transferComplete);
 // oReq.addEventListener("error", transferFailed);
 // oReq.open("GET", rssUrl);
 // oReq.send();
 
+//console.log("CSS: ", cssMod);
 
-// DWait.ready("jms/lib/jquery/jquery.current.js",function(){
-//   console.log("HERE");
-// });
-
-if (typeof jQuery != 'undefined') {
-    alert("jQuery library is loaded!");
-}else{
-    alert("jQuery library is not found!");
-}
+GM_xmlhttpRequest({
+  method: "GET",
+  url: rssUrl,
+  onload: transferComplete,
+  onerror: transferFailed
+});
