@@ -18,7 +18,7 @@
 // @name            leanforward
 // @namespace       https://greasyfork.org/en/users/24734-ctag
 // @description     Fix Deviantart's SitBack page for flash-less browsers.
-// @version         01.02.03
+// @version         01.02.04
 // @author          Christopher Bero
 // @license         LGPL-3.0 http://www.gnu.org/licenses/lgpl-3.0.en.html
 // @homepageURL     https://github.com/ctag/leanforward
@@ -34,6 +34,11 @@
 // Variables
 var _DEBUG = false;
 var divContent = document.getElementById("sitbackcontent");
+var divTitleBar = document.getElementById('titleBar');
+var divTitle = divTitleBar.getElementsByClassName('title')[0];
+var divAuthor = divTitleBar.getElementsByClassName('author')[0];
+divTitle.textContent = "title";
+divAuthor.textContent = "author";
 var imageLoad;
 var imageDisp;
 var deviationData = [];
@@ -50,6 +55,9 @@ var offset = 0; // offset from front, incremented by 'limit'
 var rssEnd = false; // Boolean, are we out of RSS data?
 // Transition variables
 var delay = 10000;
+var type = "blink";
+// Controls
+var tmp;
 
 if (_DEBUG) console.log("Running leanforward.user.js [" + GM_info.script.version + "]");
 
@@ -77,6 +85,8 @@ function displayNext() {
   //if (_DEBUG) console.log("Setting image to: ", imageLoad.attr('src'));
   if (_DEBUG) console.log("Loading image: " + imageIndex);
   imageDisp.attr('src', imageLoad.attr('src'));
+  divTitle.textContent = deviationData[imageIndex-1].title;
+  divAuthor.textContent = deviationData[imageIndex-1].author;
   imageLoad.attr('src', deviationData[imageIndex].image.url);
   if (imageIndex === (deviationData.length - limit + 1)) {
     if (_DEBUG) console.log("End of images! Getting more...");
@@ -123,6 +133,7 @@ function transferComplete(data) {
     deviation = {};
     deviation.image = {};
     deviation.title = item.find('title').text();
+    deviation.author = item.find('media\\:credit, credit')['0'].textContent;
     deviation.description = item.find('description').text();
     deviation.url = item.find('link').text(); // A url to the page
     deviation.copyright = item.find('media\\:copyright, copyright').text();
@@ -145,6 +156,8 @@ function transferComplete(data) {
   //if (_DEBUG) console.log("Images: ", deviationData);
   if (!imageDisp.attr('src')) {
     imageDisp.attr('src', deviationData[0].image.url);
+    divTitle.textContent = deviationData[0].title;
+    divAuthor.textContent = deviationData[0].author;
     imageLoad.attr('src', deviationData[1].image.url);
     imageIndex = 0;
     loopStart();
