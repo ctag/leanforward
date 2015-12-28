@@ -18,7 +18,7 @@
 // @name            leanforward
 // @namespace       https://greasyfork.org/en/users/24734-ctag
 // @description     Fix Deviantart's SitBack page for flash-less browsers.
-// @version         01.02.04
+// @version         01.02.05
 // @author          Christopher Bero
 // @license         LGPL-3.0 http://www.gnu.org/licenses/lgpl-3.0.en.html
 // @homepageURL     https://github.com/ctag/leanforward
@@ -27,7 +27,10 @@
 // @include         /.*justsitback\.deviantart\.com.*/
 // @grant           GM_xmlhttpRequest
 // @grant           GM_info
+// @grant           GM_getResourceURL
 // @require         https://s.deviantart.com/styles/jms/lib/jquery/jquery-stable.js
+// @resource        logo_play data/dalogo_sitback_play.png
+// @resource        logo_pause data/dalogo_sitback_pause.png
 // @run-at          document-idle
 // ==/UserScript==
 
@@ -35,6 +38,9 @@
 var _DEBUG = false;
 var divContent = document.getElementById("sitbackcontent");
 var divTitleBar = document.getElementById('titleBar');
+var divInfo = divTitleBar.getElementsByClassName('info')[0];
+var logoPlayUrl = 'url(\'' + GM_getResourceURL('logo_play') + '\') no-repeat scroll left 5px';
+var logoPauseUrl = 'url(\'' + GM_getResourceURL('logo_pause') + '\') no-repeat scroll left 5px';
 var divTitle = divTitleBar.getElementsByClassName('title')[0];
 var divAuthor = divTitleBar.getElementsByClassName('author')[0];
 divTitle.textContent = "title";
@@ -56,8 +62,8 @@ var rssEnd = false; // Boolean, are we out of RSS data?
 // Transition variables
 var delay = 10000;
 var type = "blink";
-// Controls
-var tmp;
+// Colors
+
 
 if (_DEBUG) console.log("Running leanforward.user.js [" + GM_info.script.version + "]");
 
@@ -116,11 +122,23 @@ function buildQueryURL()
 function loopStart()
 {
   timerID = window.setInterval(displayNext, delay);
+  divInfo.style.background = logoPlayUrl;
 }
 
 function loopStop()
 {
   window.clearInterval(timerID);
+  divInfo.style.background = logoPauseUrl;
+  timerID = null;
+}
+
+function loopToggle()
+{
+  if (timerID) {
+    loopStop();
+  } else {
+    loopStart();
+  }
 }
 
 function transferComplete(data) {
@@ -159,6 +177,7 @@ function transferComplete(data) {
     divTitle.textContent = deviationData[0].title;
     divAuthor.textContent = deviationData[0].author;
     imageLoad.attr('src', deviationData[1].image.url);
+    divInfo.style.background = logoPlayUrl;
     imageIndex = 0;
     loopStart();
   }
@@ -213,6 +232,10 @@ function setup() {
   });
   if (_DEBUG) console.log("Done with setup()");
 }
+
+divTitleBar.addEventListener('click', function (event) {
+  loopToggle();
+});
 
 /**
  * DO THINGS
