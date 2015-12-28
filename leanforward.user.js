@@ -18,7 +18,7 @@
 // @name            leanforward
 // @namespace       https://greasyfork.org/en/users/24734-ctag
 // @description     Fix Deviantart's SitBack page for flash-less browsers.
-// @version         01.02.05
+// @version         01.02.06
 // @author          Christopher Bero
 // @license         LGPL-3.0 http://www.gnu.org/licenses/lgpl-3.0.en.html
 // @homepageURL     https://github.com/ctag/leanforward
