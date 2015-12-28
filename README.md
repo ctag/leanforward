@@ -2,6 +2,8 @@
 
 Access DeviantArt's "Sit Back" page without Flash.
 
+[Install Link](https://github.com/ctag/leanforward/raw/master/leanforward.user.js)
+
 ## What is this
 
 Lean Forward started out as a Firefox extension, but I quickly learned that the task was better suited as a GreaseMonkey user script. So now it's that.
