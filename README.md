@@ -2,8 +2,6 @@
 
 Access DeviantArt's "Sit Back" page without Flash.
 
-[Install Link](https://github.com/ctag/leanforward/raw/master/leanforward.user.js)
-
 ## What is this
 
 Lean Forward started out as a Firefox extension, but I quickly learned that the task was better suited as a GreaseMonkey user script. So now it's that.
@@ -12,7 +10,24 @@ The idea is to allow people the same functionality on DeviantArt's sitback page 
 
 ## Install
 
-Just, uh, click on the userscript and download from 'raw' display mode?
+You need:
+
+* Firefox or compatible browser (that also lacks the affliction of Flashplayer)
+* [GreaseMonkey](http://www.greasespot.net/)
+
+Just, uh, click on the userscript and download from 'raw' display mode? 
+
+Or click this [install Link](https://github.com/ctag/leanforward/raw/master/leanforward.user.js).
+
+## TODO
+
+* [DONE] ~~Add play/pause functionality~~
+* Add menu to change options
+* Add multiple transition effects
+* Add color options
+* Add true full-screen option
+* Add copyright for images
+* Add link to DA page
 
 ## Dev Notes
 
